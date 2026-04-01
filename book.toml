@@ -1,9 +1,9 @@
 [book]
-title = "逆天龙帝"
+title = "lxbeyond 的小说书架"
 authors = ["lxbeyond"]
 language = "zh"
 src = "src"
-description = "苍穹大陆，以宗门为核心，四大宗门争霸天下。废材龙傲天觉醒吞天龙体，逆天崛起，镇压诸天！"
+description = "lxbeyond 的原创小说合集"
 
 [build]
 build-dir = "book"
