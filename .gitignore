@@ -1,0 +1,5 @@
+# Generated mdBook source
+src/
+
+# Build output
+book/

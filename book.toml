@@ -1,0 +1,15 @@
+[book]
+title = "逆天龙帝"
+authors = ["lxbeyond"]
+language = "zh"
+src = "src"
+description = "苍穹大陆，以宗门为核心，四大宗门争霸天下。废材龙傲天觉醒吞天龙体，逆天崛起，镇压诸天！"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/lxbeyond/novel-book"
+additional-css = ["theme/custom.css"]
