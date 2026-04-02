@@ -32,10 +32,39 @@ for novel_dir in "$NOVELS_DIR"/*/; do
     novel_slug="$novel_name"
     novel_path="/$novel_slug/"
 
-    # 从大纲提取简介
+    # 从大纲提取元数据
     description=""
+    synopsis=""
+    cover_emoji=""
+    cover_tagline=""
+    cover_colors=""
     if [ -f "$novel_dir/00-大纲.md" ]; then
         description=$(awk '/^- \*\*题材\*\*/{gsub(/^- \*\*题材\*\*：/, ""); print; exit}' "$novel_dir/00-大纲.md")
+        cover_emoji=$(awk '/^- \*\*图标\*\*：/{gsub(/^- \*\*图标\*\*：/, ""); print; exit}' "$novel_dir/00-大纲.md")
+        cover_tagline=$(awk '/^- \*\*一句话\*\*：/{gsub(/^- \*\*一句话\*\*：/, ""); print; exit}' "$novel_dir/00-大纲.md")
+        cover_colors=$(awk '/^- \*\*配色\*\*：/{gsub(/^- \*\*配色\*\*：/, ""); print; exit}' "$novel_dir/00-大纲.md")
+        synopsis=$(awk '/^## 简介/{found=1; next} /^## /{if(found) exit} found{print}' "$novel_dir/00-大纲.md")
+    fi
+
+    # 默认封面配色
+    [ -z "$cover_emoji" ] && cover_emoji="📖"
+    [ -z "$cover_colors" ] && cover_colors="#1a1a2e, #16213e, #0f3460"
+    [ -z "$cover_tagline" ] && cover_tagline="$description"
+
+    # 简介转 HTML 段落
+    synopsis_html=""
+    if [ -n "$synopsis" ]; then
+        synopsis_html=$(echo "$synopsis" | while IFS= read -r line; do
+            if [ -n "$line" ]; then
+                echo "<p>${line}</p>"
+            fi
+        done)
+    fi
+
+    # 简介预览（首页卡片用，取第一段）
+    synopsis_preview=""
+    if [ -n "$synopsis" ]; then
+        synopsis_preview=$(echo "$synopsis" | awk 'NF{print; exit}')
     fi
 
     # 统计字符数
@@ -95,24 +124,29 @@ for novel_dir in "$NOVELS_DIR"/*/; do
         sidebar_items="$sidebar_items{\"text\":\"${full_title}\",\"link\":\"${target_link}\"}"
     done
 
-    # 生成小说首页
+    # 生成小说首页（带封面 + 简介）
     {
         echo "---"
         echo "title: \"${novel_name}\""
         echo "---"
         echo ""
-        echo "<div class=\"novel-intro\">"
+        echo "<div class=\"novel-cover\" style=\"background: linear-gradient(135deg, ${cover_colors})\">"
+        echo "<div class=\"cover-emoji\">${cover_emoji}</div>"
+        echo "<h1 class=\"cover-title\">${novel_name}</h1>"
+        echo "<p class=\"cover-tagline\">${cover_tagline}</p>"
+        echo "<p class=\"cover-author\">lxbeyond 著</p>"
+        echo "</div>"
         echo ""
-        echo "# ${novel_name}"
-        echo ""
-        if [ -n "$description" ]; then
-            echo "> ${description}"
+        if [ -n "$synopsis_html" ]; then
+            echo "<div class=\"novel-synopsis\">"
+            echo "<h2>📖 内容简介</h2>"
+            echo "${synopsis_html}"
+            echo "</div>"
             echo ""
         fi
-        echo "📖 共 **${chapter_count}** 章 | 约 **${word_est}** 万字"
-        echo ""
+        echo "<div class=\"novel-info-bar\">"
+        echo "<span class=\"novel-stats\">📖 共 ${chapter_count} 章 | 约 ${word_est} 万字</span>"
         echo "<a class=\"start-btn\" href=\"${first_chapter_relative}\">▶ 开始阅读第一章</a>"
-        echo ""
         echo "</div>"
     } > "$DOCS_DIR/$novel_slug/index.md"
 
@@ -128,17 +162,26 @@ for novel_dir in "$NOVELS_DIR"/*/; do
     fi
     nav_items="$nav_items{\"text\":\"${novel_name}\",\"link\":\"${novel_path}\"}"
 
-    # 构建首页卡片 HTML
+    # 构建首页卡片 HTML（带封面 + 简介预览）
     index_cards="$index_cards
 <div class=\"novel-card\">
+<div class=\"novel-card-cover\" style=\"background: linear-gradient(135deg, ${cover_colors})\">
+<span class=\"card-emoji\">${cover_emoji}</span>
+<span class=\"card-title\">${novel_name}</span>
+</div>
+<div class=\"novel-card-body\">
 <h2><a href=\"./${novel_slug}/\">${novel_name}</a></h2>"
-    if [ -n "$description" ]; then
+    if [ -n "$synopsis_preview" ]; then
+        index_cards="$index_cards
+<p class=\"novel-desc\">${synopsis_preview}</p>"
+    elif [ -n "$description" ]; then
         index_cards="$index_cards
 <p class=\"novel-desc\">${description}</p>"
     fi
     index_cards="$index_cards
 <p class=\"novel-meta\">📖 共 ${chapter_count} 章 | 约 ${word_est} 万字</p>
 <a class=\"novel-btn\" href=\"./${novel_slug}/\">进入阅读 →</a>
+</div>
 </div>"
 
     echo "  [${novel_name}] 处理完成：${chapter_count} 个章节"
@@ -157,7 +200,7 @@ hero:
   tagline: "在线阅读 · 手机适配 · 深色模式"
 ---
 
-<div style="max-width: 680px; margin: 40px auto; padding: 0 20px;">
+<div style="max-width: 800px; margin: 40px auto; padding: 0 20px;">
 
 ${index_cards}
 
