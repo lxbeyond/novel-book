@@ -4,9 +4,9 @@
 .content main {
     max-width: 800px;
     margin: 0 auto;
-    font-size: 1.35rem;
-    line-height: 2.1;
-    letter-spacing: 0.04em;
+    font-size: 1.5rem;
+    line-height: 2.2;
+    letter-spacing: 0.05em;
 }
 
 /* 段落间距 */
@@ -111,7 +111,7 @@
 /* 移动端优化 */
 @media (max-width: 768px) {
     .content main {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         line-height: 2;
     }
 }
