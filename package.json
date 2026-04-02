@@ -1,0 +1,14 @@
+{
+  "name": "novel-book",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "preprocess": "bash scripts/preprocess.sh",
+    "docs:dev": "bash scripts/preprocess.sh && vitepress dev docs",
+    "docs:build": "bash scripts/preprocess.sh && vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.0"
+  }
+}

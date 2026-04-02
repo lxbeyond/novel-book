@@ -1,5 +1,16 @@
-# Generated mdBook source
-src/
+# Generated docs (by preprocess script)
+docs/index.md
+docs/地铁口的雨/
+docs/逆天龙帝/
+docs/.vitepress/config.mts
 
-# Build output
+# VitePress build output
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Dependencies
+node_modules/
+
+# Legacy mdBook
+src/
 book/

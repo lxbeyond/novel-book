@@ -21,23 +21,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Preprocess novel chapters
-        run: |
-          chmod +x scripts/preprocess.sh
-          bash scripts/preprocess.sh
-
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          mdbook-version: 'latest'
+          node-version: 20
 
-      - name: Build book
-        run: mdbook build
+      - name: Install dependencies
+        run: npm install
+
+      - name: Preprocess novel chapters
+        run: bash scripts/preprocess-vitepress.sh
+
+      - name: Build VitePress
+        run: npx vitepress build docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./book
+          path: ./docs/.vitepress/dist
 
   deploy:
     environment:
