@@ -40,20 +40,17 @@ for novel_dir in "$NOVELS_DIR"/*/; do
     novel_slug="novel-${novel_count}"
     mkdir -p "$SRC_DIR/$novel_slug"
 
-    # 生成小说首页
-    {
-        echo "# ${novel_name}"
-        echo ""
-        if [ -n "$description" ]; then
-            echo "> ${description}"
-            echo ""
-        fi
-        echo "---"
-        echo ""
-        echo "*请从左侧目录选择章节开始阅读。*"
-    } > "$SRC_DIR/$novel_slug/index.md"
+    # 统计总字符数
+    total_chars=0
+    for f in "$novel_dir"/第*章-*.md; do
+        [ -f "$f" ] || continue
+        chars=$(wc -m < "$f")
+        total_chars=$((total_chars + chars))
+    done
+    word_est=$(( total_chars * 2 / 3 / 10000 ))
 
-    # 处理章节文件
+    # 先处理章节文件，统计章节数
+    novel_first_chapter_file=""
     chapter_count=0
     for file in "$novel_dir"/第*章-*.md; do
         [ -f "$file" ] || continue
@@ -70,37 +67,68 @@ for novel_dir in "$NOVELS_DIR"/*/; do
         # 目标文件名
         target_file="chapter-${chapter_num}.md"
 
-        # 提取正文内容（## 正文 之后的所有内容）
+        # 记录第一章文件名
+        if [ -z "$novel_first_chapter_file" ]; then
+            novel_first_chapter_file="$target_file"
+        fi
+
+        # 提取正文内容（## 正文 之后的所有内容，去掉末尾 ## 章节备注）
         {
             echo "# ${full_title}"
             echo ""
-            awk '/^## 正文/{found=1; next} found{print}' "$file"
+            awk '/^## 正文/{found=1; next} /^## 章节备注/{found=0} found{print}' "$file"
         } > "$SRC_DIR/$novel_slug/$target_file"
     done
 
+    # 生成小说首页（在统计完章节数之后）
+    {
+        echo "# ${novel_name}"
+        echo ""
+        if [ -n "$description" ]; then
+            echo "> ${description}"
+            echo ""
+        fi
+        echo "---"
+        echo ""
+        echo "📖 共 **${chapter_count}** 章 | 约 **${word_est}** 万字"
+        echo ""
+        echo "请从左侧目录选择章节开始阅读，或点击下方第一章直接开始："
+        echo ""
+    } > "$SRC_DIR/$novel_slug/index.md"
+
+    # 补充首页的「开始阅读」链接
+    if [ -n "$novel_first_chapter_file" ]; then
+        echo "[**▶ 开始阅读第一章**]($novel_first_chapter_file)" >> "$SRC_DIR/$novel_slug/index.md"
+    fi
+
     # 记录小说信息供 SUMMARY 使用
-    novel_list="${novel_list}${novel_slug}|${novel_name}|${chapter_count}\n"
+    novel_list="${novel_list}${novel_slug}|${novel_name}|${chapter_count}|${word_est}|${description}\n"
 
     echo "  [${novel_name}] 处理完成：${chapter_count} 个章节"
 done
 
-# 生成首页 README.md
+# 生成首页 README.md（卡片风格）
 {
-    echo "# 小说书架"
+    echo "# 📚 小说书架"
     echo ""
-    echo "欢迎来到我的小说书架！以下是所有作品："
+    echo "欢迎来到我的小说书架！点击封面进入阅读。"
     echo ""
-    echo "| 小说 | 章节数 |"
-    echo "|------|--------|"
 
-    echo -e "$novel_list" | while IFS='|' read -r slug name chapters; do
+    echo -e "$novel_list" | while IFS='|' read -r slug name chapters word_est desc; do
         [ -z "$slug" ] && continue
-        echo "| [${name}](${slug}/index.md) | ${chapters} 章 |"
+        echo "---"
+        echo ""
+        echo "## [${name}](${slug}/index.md)"
+        echo ""
+        if [ -n "$desc" ]; then
+            echo "> ${desc}"
+            echo ""
+        fi
+        echo "📖 共 **${chapters}** 章 | 约 **${word_est}** 万字"
+        echo ""
+        echo "[**进入阅读 →**](${slug}/index.md)"
+        echo ""
     done
-
-    echo ""
-    echo "---"
-    echo "*从左侧目录或上方表格选择小说开始阅读。*"
 } > "$SRC_DIR/README.md"
 
 # 生成 SUMMARY.md
