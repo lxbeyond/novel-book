@@ -167,6 +167,7 @@ cat > "$DOCS_DIR/.vitepress/config.mts" << CONFIGEOF
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/novel-book/',
   lang: 'zh-CN',
   title: '小说书架',
   description: 'lxbeyond 的原创小说合集',
