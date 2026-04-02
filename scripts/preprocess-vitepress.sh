@@ -54,6 +54,7 @@ for novel_dir in "$NOVELS_DIR"/*/; do
     chapter_count=0
     sidebar_items=""
     first_chapter_link=""
+    first_chapter_relative=""
 
     for file in "$novel_dir"/第*章-*.md; do
         [ -f "$file" ] || continue
@@ -73,6 +74,7 @@ for novel_dir in "$NOVELS_DIR"/*/; do
         # 记录第一章
         if [ -z "$first_chapter_link" ]; then
             first_chapter_link="$target_link"
+            first_chapter_relative="./chapter-${chapter_num}"
         fi
 
         # 提取正文（## 正文 到 ## 章节备注 之间）
@@ -109,7 +111,7 @@ for novel_dir in "$NOVELS_DIR"/*/; do
         fi
         echo "📖 共 **${chapter_count}** 章 | 约 **${word_est}** 万字"
         echo ""
-        echo "<a class=\"start-btn\" href=\"${first_chapter_link}\">▶ 开始阅读第一章</a>"
+        echo "<a class=\"start-btn\" href=\"${first_chapter_relative}\">▶ 开始阅读第一章</a>"
         echo ""
         echo "</div>"
     } > "$DOCS_DIR/$novel_slug/index.md"
@@ -129,14 +131,14 @@ for novel_dir in "$NOVELS_DIR"/*/; do
     # 构建首页卡片 HTML
     index_cards="$index_cards
 <div class=\"novel-card\">
-<h2><a href=\"${novel_path}\">${novel_name}</a></h2>"
+<h2><a href=\"./${novel_slug}/\">${novel_name}</a></h2>"
     if [ -n "$description" ]; then
         index_cards="$index_cards
 <p class=\"novel-desc\">${description}</p>"
     fi
     index_cards="$index_cards
 <p class=\"novel-meta\">📖 共 ${chapter_count} 章 | 约 ${word_est} 万字</p>
-<a class=\"novel-btn\" href=\"${novel_path}\">进入阅读 →</a>
+<a class=\"novel-btn\" href=\"./${novel_slug}/\">进入阅读 →</a>
 </div>"
 
     echo "  [${novel_name}] 处理完成：${chapter_count} 个章节"
